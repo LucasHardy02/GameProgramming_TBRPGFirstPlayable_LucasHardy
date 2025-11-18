@@ -5,6 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using static System.Net.Mime.MediaTypeNames;
 using System.IO;
+using System.Threading;
+using System.Media;
+using System.Runtime.CompilerServices;
 
 namespace GameProgramming_TBRPGFirstPlayable_LucasHardy
 {
@@ -20,17 +23,27 @@ namespace GameProgramming_TBRPGFirstPlayable_LucasHardy
         static int playerXPos;
         static int playerYPos;
 
+        static int playerHealth = 2;
+        static int playerDamage = 1;
+
         static string enemy = "X";
+        static string enemy2 = ">";
         static int enemyXPos;
         static int enemyYPos;
+        static int enemy1Health = 1;
+        static int enemy2Health = 2;
+
 
         static bool playersTurn = true;
         static bool gameRunning = true;
 
         static void Main(string[] args)
         {
-            playerXPos = 5;
-            playerYPos = 2;
+            playerXPos = 0;
+            playerYPos = 0;
+
+            enemyXPos = 26;
+            enemyYPos = 10;
 
             Console.CursorVisible = false;
             LoadMap();
@@ -42,24 +55,23 @@ namespace GameProgramming_TBRPGFirstPlayable_LucasHardy
             {
                 if (playersTurn)
                 {
+                    Console.SetCursorPosition(0, 13);
+                    Console.Write("Player's Turn     ");
+                    Thread.Sleep(250);
                     playerMovement();
                     playersTurn = false;
                 }
                 else
                 {
+                    Console.SetCursorPosition(0, 13);
+                    Console.Write("Enemy's Turn     ");
+                    Thread.Sleep(250);
                     EnemyMovement();
                     playersTurn = true;
+                    
                 }
             }
-            
 
-
-
-        }
-
-        void Update()
-        {
-            
         }
 
         static void LoadMap()
@@ -93,8 +105,6 @@ namespace GameProgramming_TBRPGFirstPlayable_LucasHardy
                    char tile = mapLines[y][x];
                     SetForegroundColor(tile);
                    Console.Write(tile);
-                   
-
                 }
                 Console.ResetColor();
                 Console.Write('║');
@@ -177,38 +187,50 @@ namespace GameProgramming_TBRPGFirstPlayable_LucasHardy
 
             ConsoleKeyInfo Direction = Console.ReadKey(true);
 
-            if (Direction.Key == ConsoleKey.W)
-            {
-                newY = newY - 1;
-            }
-            if (Direction.Key == ConsoleKey.S)
-            {
-                newY = newY + 1;
+                if (Direction.Key == ConsoleKey.W)
+                {
+                    newY = newY - 1;
+                }
+                if (Direction.Key == ConsoleKey.S)
+                {
+                    newY = newY + 1;
+                }
+                if (Direction.Key == ConsoleKey.D)
+                {
+                    newX = newX + 1;
+                }
+                if (Direction.Key == ConsoleKey.A)
+                {
+                    newX = newX - 1;
 
-            }
-            if (Direction.Key == ConsoleKey.D)
-            {
-                newX = newX + 1;
-            }
-            if (Direction.Key == ConsoleKey.A)
-            {
-                newX = newX - 1;
+                }
 
-            }
+                if (!(mapLines[newY][newX] == '*' || mapLines[newY][newX] == '^' || mapLines[newY][newX] == '~' || mapLines[newY][newX] == 'X'))
+                {
+                    if (newX >= 0 && newX < mapLines[0].Length)
+                    {
+                        playerXPos = newX;
 
-            if (newX >= 0 && newX < mapLines[0].Length)
-            {
-                playerXPos = newX;
+                    }
 
-            }
+                    if (newY >= 0 && newY < mapLines.Length)
+                    {
+                        playerYPos = newY;
 
-            if (newY >= 0 && newY < mapLines.Length)
-            {
-                playerYPos = newY;
+                    }
+                    RestoreMapTile(oldX, oldY);
 
-            }
-            RestoreMapTile(oldX, oldY);
-            DrawPlayer();
+                }
+                else
+                {
+                    newX = oldX;
+                    newY = oldY;
+                }
+
+                DrawPlayer();
+            
+
+           
 
 
         }
@@ -224,38 +246,42 @@ namespace GameProgramming_TBRPGFirstPlayable_LucasHardy
             int oldEnemyX = enemyXPos;
             int oldEnemyY = enemyYPos;
 
-            if (Math.Abs(targetX) > Math.Abs(targetY))
+
+            if (!(mapLines[newEnemyY][newEnemyX] == '*' || mapLines[newEnemyY][newEnemyX] == '^' || mapLines[newEnemyY][newEnemyX] == '~'))
             {
-                if (targetX > 0)
+                if (Math.Abs(targetX) > Math.Abs(targetY))
                 {
-                    newEnemyX = oldEnemyX + 1;
+                    if (targetX > 0)
+                    {
+                        newEnemyX = oldEnemyX + 1;
+                    }
+                    else
+                    {
+                        newEnemyX = oldEnemyX - 1;
+                    }
+
                 }
                 else
                 {
-                    newEnemyX = oldEnemyX - 1;
+                    if (targetY > 0)
+                    {
+                        newEnemyY = oldEnemyY + 1;
+                    }
+                    else
+                    {
+                        newEnemyY = oldEnemyY - 1;
+
+                    }
+
                 }
+                RestoreMapTile(oldEnemyX, oldEnemyY);
+
             }
             else
             {
-                if (targetY > 0)
-                {
-                    newEnemyY = oldEnemyY + 1;
-                }
-                else
-                {
-                    newEnemyY = oldEnemyY - 1;
-
-                }
+                newEnemyX = oldEnemyX;
+                newEnemyY = oldEnemyY;
             }
-
-
-           
-            
-
-
-
-
-            RestoreMapTile(oldEnemyX, oldEnemyY);
             enemyXPos = newEnemyX;
             enemyYPos = newEnemyY;
             DrawEnemy();
