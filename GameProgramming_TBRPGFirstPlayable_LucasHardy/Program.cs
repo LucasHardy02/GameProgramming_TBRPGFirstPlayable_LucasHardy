@@ -21,6 +21,11 @@ namespace GameProgramming_TBRPGFirstPlayable_LucasHardy
         static int height;
         static int width;
 
+        static List<(int x, int y)> goldList;
+        static char gold = '0';
+        static int goldCollected;
+       
+
         static char player = 'O';
         static int playerXPos;
         static int playerYPos;
@@ -28,20 +33,36 @@ namespace GameProgramming_TBRPGFirstPlayable_LucasHardy
         static int playerHealth = 2;
         static int playerDamage = 1;
 
+        static int lavaDamage = 1;
+
         static char enemy = 'X';
-        static string enemy2 = ">";
+
         static int enemyXPos;
         static int enemyYPos;
+
+
         static int enemy1Health = 1;
         static int enemyDamage = 1;
         static int enemy2Health = 2;
 
+        static bool GameOver = false;
+        static bool Winstate = false;
 
         static bool playersTurn = true;
         static bool gameRunning = true;
 
         static void Main(string[] args)
         {
+
+            goldList = new List<(int x, int y)>();
+            goldList.Add((1, 5));
+            goldList.Add((2, 10));
+            goldList.Add((11, 6));
+            goldList.Add((22, 5));
+            goldList.Add((24, 0));
+
+
+
             playerXPos = 0;
             playerYPos = 0;
 
@@ -53,36 +74,62 @@ namespace GameProgramming_TBRPGFirstPlayable_LucasHardy
             DisplayMap();
             DrawPlayer();
             DrawEnemy();
+            DrawGold();
 
-            if (playerHealth == 0)
+
+            
+            while (GameOver == false)
             {
-                
-            }
-            else
-            {
-                while (gameRunning)
+
+                if (Winstate == true)
                 {
-                    if (playersTurn)
+                    Console.ResetColor();
+                    Console.SetCursorPosition(0, 19);
+                    Console.Write("You win!");
+                    break;
+
+                }
+                else if (playersTurn)
+                {
+                    Console.ResetColor();
+                    Console.SetCursorPosition(0, 13);
+                    Console.Write("Player's Turn     ");
+                    Console.SetCursorPosition(0, 15);
+                    Console.Write($"Player's Health: {playerHealth}");
+                    Thread.Sleep(250);
+                    playerMovement();
+                    playersTurn = false;
+                }
+                else
+                {
+                    if (enemy1Health > 0)
                     {
-                        Console.SetCursorPosition(0, 13);
-                        Console.Write("Player's Turn     ");
-                        Console.SetCursorPosition(0, 15);
-                        Console.Write($"Players Health: {playerHealth}");
-                        Thread.Sleep(250);
-                        playerMovement();
-                        playersTurn = false;
-                    }
-                    else
-                    {
+                        Console.ResetColor();
+
                         Console.SetCursorPosition(0, 13);
                         Console.Write("Enemy's Turn     ");
                         Thread.Sleep(250);
                         EnemyMovement();
-                        playersTurn = true;
+                    }
+                    else
+                    {
+                        Console.SetCursorPosition(0, 13);
+                        Console.Write("                   ");
 
                     }
+
+                    playersTurn = true;
+
+                }
+                if (GameOver == true)
+                {
+                    Console.ResetColor();
+                    Console.SetCursorPosition(0, 19);
+                    Console.Write("Game Over");
+                    break;
                 }
             }
+            
             
 
         }
@@ -156,6 +203,10 @@ namespace GameProgramming_TBRPGFirstPlayable_LucasHardy
             {
                 Console.ForegroundColor = ConsoleColor.Yellow;
             }
+            else if (mapCharacter == '░')
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+            }
             else
             {
                 Console.ResetColor();
@@ -170,28 +221,62 @@ namespace GameProgramming_TBRPGFirstPlayable_LucasHardy
             Console.Write(tile);
         }
 
-        static void DrawPlayer()
+        static void DrawGold()
         {
+            foreach (var g in goldList)
+            {
+                Console.ForegroundColor = ConsoleColor.DarkYellow;
+                Console.SetCursorPosition(g.x + 1, g.y + 1);
+                Console.Write(gold);
+            }
 
-            Console.SetCursorPosition(playerXPos + 1, playerYPos + 1);
             Console.ResetColor();
 
-            Console.SetCursorPosition(playerXPos + 1, playerYPos + 1);
-            Console.Write(player);
+            
+        }
+
+        static void DrawPlayer()
+        {
+            if(playerHealth > 0)
+            {
+                Console.SetCursorPosition(playerXPos + 1, playerYPos + 1);
+                Console.ResetColor();
+
+                Console.SetCursorPosition(playerXPos + 1, playerYPos + 1);
+                Console.Write(player);
+            }
+            else
+            {
+
+            }
+            
         }
 
         static void DrawEnemy()
         {
-            Console.SetCursorPosition(enemyXPos + 1, enemyYPos + 1);
-            Console.ResetColor();
-            Console.SetCursorPosition(enemyXPos + 1, enemyYPos + 1);
-            Console.Write(enemy);
+            if(enemy1Health > 0)
+            {
+                Console.SetCursorPosition(enemyXPos + 1, enemyYPos + 1);
+                Console.ResetColor();
+                Console.SetCursorPosition(enemyXPos + 1, enemyYPos + 1);
+                Console.Write(enemy);
+            }
+            else
+            {
+                if (enemyXPos >= 0 && enemyYPos >= 0)
+                {
+                    RestoreMapTile(enemyXPos, enemyYPos);
+
+                }
+            }
+            
 
 
         }
         static void playerMovement()
         {
-           
+            if (GameOver || Winstate) return;
+
             int newX = playerXPos;
             int newY = playerYPos;
 
@@ -238,8 +323,24 @@ namespace GameProgramming_TBRPGFirstPlayable_LucasHardy
 
             }
 
-            if (!(mapLines[newY][newX] == '*' || mapLines[newY][newX] == '^' || mapLines[newY][newX] == '~'))
+            if (newY == enemyYPos && newX == enemyXPos)
             {
+                playerAttack();
+                DrawEnemy();
+                return;
+            }
+
+
+
+            else if (mapLines[newY][newX] == '░')
+            {
+                playerHealth = playerHealth - lavaDamage;
+
+                if (playerHealth <= 0)
+                {
+                    GameOver = true;
+                }
+
                 if (newX >= 0 && newX < mapLines[0].Length)
                 {
                     playerXPos = newX;
@@ -253,13 +354,41 @@ namespace GameProgramming_TBRPGFirstPlayable_LucasHardy
                 }
                 RestoreMapTile(oldX, oldY);
 
-                }
-                else
+            }
+            else if (!(mapLines[newY][newX] == '*' || mapLines[newY][newX] == '^' || mapLines[newY][newX] == '~'))
+            {
+                
+
+                for (int i = 0; i < goldList.Count; i++)
                 {
-                    newX = oldX;
-                    newY = oldY;
+                    if (newX == goldList[i].x && newY == goldList[i].y)
+                    {
+                        goldCollected = goldCollected + 1;
+                        goldList.RemoveAt(i);
+
+                        Console.SetCursorPosition(0, 17);
+                        Console.Write($"Player's Gold: {goldCollected}");
+
+                        if (goldCollected == 5 && enemy1Health <= 0)
+                        {
+                            Winstate = true;
+                        }
+                        break;
+                    }
                 }
 
+                playerXPos = newX;
+                playerYPos = newY;
+                RestoreMapTile(oldX, oldY);
+            }
+
+            else
+            {
+                newX = oldX;
+                newY = oldY;
+            }
+
+            
                 DrawPlayer();
             
 
@@ -269,6 +398,15 @@ namespace GameProgramming_TBRPGFirstPlayable_LucasHardy
         }
         static void EnemyMovement()
         {
+            if (GameOver || Winstate)
+            {
+                return;
+            }
+
+            if (enemy1Health <= 0)
+            {
+                return;
+            }
 
             int targetX = playerXPos - enemyXPos;
             int targetY = playerYPos - enemyYPos;
@@ -306,39 +444,86 @@ namespace GameProgramming_TBRPGFirstPlayable_LucasHardy
 
             }
 
-            if (!(mapLines[newEnemyY][newEnemyX] == '*' || mapLines[newEnemyY][newEnemyX] == '^' || mapLines[newEnemyY][newEnemyX] == '~'))
+            if (newEnemyX == playerXPos && newEnemyY == playerYPos)
             {
-               
+                enemyAttack();
+                DrawPlayer();
+                return;
+                
+            }
+            else if (mapLines[newEnemyY][newEnemyX] == '░')
+            {
+                enemy1Health = enemy1Health - lavaDamage;
+
+                if(enemy1Health <= 0)
+                {
+                    RestoreMapTile(enemyXPos, enemyYPos);
+
+                    if (goldCollected == 5)
+                    {
+                        Winstate = true;
+                    }
+                    return;
+                }
+
+
+                RestoreMapTile(oldEnemyX, oldEnemyY);
                 enemyXPos = newEnemyX;
                 enemyYPos = newEnemyY;
+                DrawEnemy();
+                return;
+                
+
+            }
+            else if (!(mapLines[newEnemyY][newEnemyX] == '*' || mapLines[newEnemyY][newEnemyX] == '^' || mapLines[newEnemyY][newEnemyX] == '~'))
+            {
                 RestoreMapTile(oldEnemyX, oldEnemyY);
+                enemyXPos = newEnemyX;
+                enemyYPos = newEnemyY;
+                DrawEnemy();
+                return;
 
             }
-            
-            else if (mapLines[newEnemyY][newEnemyX] == '*' || mapLines[newEnemyY][newEnemyX] == '^' || mapLines[newEnemyY][newEnemyX] == '~')
-            {
-                newEnemyX = oldEnemyX;
-                newEnemyY = oldEnemyY;
-            }
-            else if (mapLines[newEnemyY][newEnemyX] == mapLines[targetY][targetX])
-            {
-                newEnemyX = oldEnemyX;
-                newEnemyY = oldEnemyY;
-                AttackPlayer();
-            }
-
-            DrawEnemy();
+           
+            return;
 
 
         }
-        static void AttackEnemy()
+        static void playerAttack()
         {
             enemy1Health = enemy1Health - playerDamage;
+
+            if (enemy1Health <= 0)
+            {
+                RestoreMapTile(enemyXPos, enemyYPos);
+
+                enemyXPos = -1;
+                enemyYPos = -1;
+
+                if (goldCollected == 5)
+                {
+                    Winstate = true;
+                }
+                return;
+            }
+
         }
-        static void AttackPlayer()
+        static void enemyAttack()
         {
             playerHealth = playerHealth - enemyDamage;
+
+            if (playerHealth <= 0)
+            {
+                RestoreMapTile(playerXPos, playerYPos);
+                GameOver = true;
+                return;
+            }
+
+            
+            
         }
+
+
         static void ResetGame()
         {
             playerXPos = 0;
