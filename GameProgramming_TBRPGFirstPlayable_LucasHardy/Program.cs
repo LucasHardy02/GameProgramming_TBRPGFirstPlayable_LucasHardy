@@ -30,10 +30,10 @@ namespace GameProgramming_TBRPGFirstPlayable_LucasHardy
         static int playerXPos;
         static int playerYPos;
 
-        static int playerHealth = 2;
-        static int playerDamage = 1;
+        static int playerHealth = 100;
+        static int playerDamage = 25;
 
-        static int lavaDamage = 1;
+        static int lavaDamage = 25;
 
         static char enemy = 'X';
 
@@ -41,8 +41,8 @@ namespace GameProgramming_TBRPGFirstPlayable_LucasHardy
         static int enemyYPos;
 
 
-        static int enemy1Health = 1;
-        static int enemyDamage = 1;
+        static int enemy1Health = 50;
+        static int enemyDamage = 25;
         static int enemy2Health = 2;
 
         static bool GameOver = false;
@@ -85,7 +85,7 @@ namespace GameProgramming_TBRPGFirstPlayable_LucasHardy
                 {
                     Console.ResetColor();
                     Console.SetCursorPosition(0, 19);
-                    Console.Write("You win!");
+                    Console.Write("You win!                                         ");
                     break;
 
                 }
@@ -95,7 +95,10 @@ namespace GameProgramming_TBRPGFirstPlayable_LucasHardy
                     Console.SetCursorPosition(0, 13);
                     Console.Write("Player's Turn     ");
                     Console.SetCursorPosition(0, 15);
-                    Console.Write($"Player's Health: {playerHealth}");
+                    Console.Write($"Player's Health: {playerHealth}     ");
+                    Console.SetCursorPosition(0, 19);
+                    Console.Write("Collect the gold and defeat the enemy to win!");
+
                     Thread.Sleep(250);
                     playerMovement();
                     playersTurn = false;
@@ -125,7 +128,8 @@ namespace GameProgramming_TBRPGFirstPlayable_LucasHardy
                 {
                     Console.ResetColor();
                     Console.SetCursorPosition(0, 19);
-                    Console.Write("Game Over");
+                    Console.Write("Game Over                                        ");
+                    Console.ReadKey(true);
                     break;
                 }
             }
@@ -521,23 +525,6 @@ namespace GameProgramming_TBRPGFirstPlayable_LucasHardy
 
             
             
-        }
-
-
-        static void ResetGame()
-        {
-            playerXPos = 0;
-            playerYPos = 0;
-
-            playerHealth = 2;
-
-            enemyXPos = 26;
-            enemyYPos = 10;
-
-            enemy1Health = 1;
-
-
-
         }
 
     }
